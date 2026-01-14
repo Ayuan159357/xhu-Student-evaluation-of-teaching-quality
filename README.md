@@ -7,6 +7,9 @@
 该脚本使用 MTI 许可证，详见 [LICENSE](https://github.com/Ayuan159357/xhu-Student-evaluation-of-teaching-quality/blob/main/LICENSE "LICENSE")。
 # 免责声明
 1.本脚本仅供学习和个人效率提升使用，请勿将其用于任何违反网站规则或法律法规的用途。
+
 2.用户因使用此脚本造成的任何后果，由用户自行承担。
+
 3.开发者对脚本的使用效果不作任何保证，且不承担任何相关责任。
+
 ## 若不同意以上条款，请勿使用本脚本。
