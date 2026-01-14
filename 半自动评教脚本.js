@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         西华大学教务系统"学生评价"自动选择
-// @namespace    https://jwc.xhu.edu.cn/
+// @namespace    https://github.com/Ayuan159357/xhu-Student-evaluation-of-teaching-quality
 // @license       MIT 
-// @version      0.1
-// @description  自动选择第一个问题"比较同意"，其他问题"非常同意"；移除“下一项/结束”弹窗及保存相关逻辑，仅做自动填写（不提交）
+// @version      2026.1.14.1
+// @description  自动选择第一个问题"比较同意"，其他问题"非常同意"；仅做自动填写（不提交）
 // @author       ayuan159357
 // @match        https://jwc.xhu.edu.cn/xspjgl/xspj_cxXspjIndex.html?*
 // @grant        GM_addStyle
@@ -18,7 +18,7 @@
     return;
   }
 
-  // UI 样式（简洁）
+  // UI 样式
   const style = document.createElement('style');
   style.textContent = `
     #${injectedId} { position: fixed; right: 20px; bottom: 20px; z-index: 999999; font-family: "Microsoft Yahei", Arial; }
@@ -115,7 +115,6 @@
     removeEvalUI();
   });
 
-  // 暴露全局移除函数，便于调试
   window.removeEvalUI = removeEvalUI;
 
   setStatus('就绪（等待一键评教）');
