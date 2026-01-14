@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name         西华大学教务系统"学生评价"自动选择
 // @namespace    https://jwc.xhu.edu.cn/
+// @license       MIT 
 // @version      0.1
 // @description  自动选择第一个问题"比较同意"，其他问题"非常同意"；移除“下一项/结束”弹窗及保存相关逻辑，仅做自动填写（不提交）
 // @author       ayuan159357
