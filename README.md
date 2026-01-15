@@ -11,6 +11,10 @@
 
 **统一在右下角弹窗**
 
+# 安装可见[脚本猫](https://scriptcat.org/zh-CN/script-show-page/5165)
+
+# 源文件见[GitHub](https://github.com/Ayuan159357/xhu-Student-evaluation-of-teaching-quality/edit/main/README.md)
+
 # 许可证
 该脚本使用 MTI 许可证，详见 [LICENSE](https://github.com/Ayuan159357/xhu-Student-evaluation-of-teaching-quality/blob/main/LICENSE "LICENSE")。
 # 免责声明
