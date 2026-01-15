@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         西华大学教务系统"学生评价"自动选择
+// @name         高校教务系统"学生评价"自动选择
 // @namespace    https://github.com/Ayuan159357/xhu-Student-evaluation-of-teaching-quality
 // @license       MIT 
 // @version      2026.1.15.1
-// @description  自动识别学校执行评教。西科大：全自动首选+意见和建议填“无”；西华：弹窗手动一键填写。
+// @description  自动识别学校执行评教。现在支持西科大：全自动首选+意见和建议填“无”；西华：弹窗手动一键填写。
 // @author       ayuan159357
 // @match        https://matrix.dean.swust.edu.cn/acadmicManager/index.cfm?event=evaluateOnline:evaluateResponse*
 // @match        https://jwc.xhu.edu.cn/xspjgl/xspj_cxXspjIndex.html?*
