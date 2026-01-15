@@ -2,121 +2,132 @@
 // @name         西华大学教务系统"学生评价"自动选择
 // @namespace    https://github.com/Ayuan159357/xhu-Student-evaluation-of-teaching-quality
 // @license       MIT 
-// @version      2026.1.14.1
-// @description  自动选择第一个问题"比较同意"，其他问题"非常同意"；仅做自动填写（不提交）
+// @version      2026.1.15.1
+// @description  自动识别学校执行评教。西科大：全自动首选+意见和建议填“无”；西华：弹窗手动一键填写。
 // @author       ayuan159357
+// @match        https://matrix.dean.swust.edu.cn/acadmicManager/index.cfm?event=evaluateOnline:evaluateResponse*
 // @match        https://jwc.xhu.edu.cn/xspjgl/xspj_cxXspjIndex.html?*
 // @grant        GM_addStyle
 // @run-at       document-end
 // ==/UserScript==
 
-(function(){
-  const injectedId = 'sc-eval-ui-slim';
+(function() {
+    'use strict';
 
-  if(document.getElementById(injectedId)){
-    console.log('评教面板已存在。执行 removeEvalUI() 可删除后重新注入。');
-    return;
-  }
+    const host = window.location.host;
+    const injectedId = 'uni-eval-ui';
 
-  // UI 样式
-  const style = document.createElement('style');
-  style.textContent = `
-    #${injectedId} { position: fixed; right: 20px; bottom: 20px; z-index: 999999; font-family: "Microsoft Yahei", Arial; }
-    #${injectedId} .sc-panel { background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius:6px; width:220px; overflow:hidden; }
-    #${injectedId} .sc-header { background:#0483d4; color:#fff; padding:8px 10px; font-weight:600; }
-    #${injectedId} .sc-body { padding:10px; }
-    #${injectedId} .sc-btn { display:inline-block; margin:6px 4px 0 0; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:13px; }
-    #${injectedId} .sc-btn.primary { background:#28a745; color:#fff; border:1px solid #1e7e34; }
-    #${injectedId} .sc-btn.warn { background:#f0ad4e; color:#fff; border:1px solid #ec971f; }
-    #${injectedId} .sc-footer { padding:8px; text-align:right; font-size:12px; color:#666; background:#fbfbfb; border-top:1px solid #eee; }
-    #${injectedId} .sc-hint { font-size:12px; color:#333; line-height:1.4;}
-    #${injectedId} .sc-close { float:right; color:#fff; cursor:pointer; opacity:0.9;}
-    #${injectedId} .sc-close:hover { opacity:1; }
-  `;
-  document.head.appendChild(style);
+    // 1. 注入共用样式
+    const style = document.createElement('style');
+    style.textContent = `
+        #${injectedId} { position: fixed; right: 20px; bottom: 20px; z-index: 999999; font-family: "Microsoft Yahei", Arial; }
+        #${injectedId} .sc-panel { background: #fff; border: 1px solid #ccc; box-shadow: 0 4px 12px rgba(0,0,0,0.2); border-radius:8px; width:240px; overflow:hidden; }
+        #${injectedId} .sc-header { background:#0483d4; color:#fff; padding:10px; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+        #${injectedId} .sc-body { padding:12px; }
+        #${injectedId} .sc-btn { display:block; width:100%; margin-bottom:8px; padding:8px; border-radius:4px; cursor:pointer; font-size:14px; text-align:center; border:none; transition: opacity 0.2s; }
+        #${injectedId} .sc-btn.primary { background:#28a745; color:#fff; }
+        #${injectedId} .sc-btn.warn { background:#6c757d; color:#fff; }
+        #${injectedId} .sc-btn:hover { opacity: 0.9; }
+        #${injectedId} .sc-hint { font-size:12px; color:#555; line-height:1.5; margin-bottom:10px; border-left: 3px solid #0483d4; padding-left: 8px;}
+        #${injectedId} .sc-close { color:#fff; cursor:pointer; font-size:18px; line-height:1; }
+        #${injectedId} .sc-status { font-size:12px; color:#0483d4; font-weight:bold; }
+    `;
+    document.head.appendChild(style);
 
-  // 创建主面板（简化：只有 一键评教 / 取消）
-  const wrapper = document.createElement('div');
-  wrapper.id = injectedId;
-  wrapper.innerHTML = `
-    <div class="sc-panel">
-      <div class="sc-header">
-        一键评教面板 <span class="sc-close" title="关闭">✕</span>
-      </div>
-      <div class="sc-body">
-        <div class="sc-hint">自动填写：第1题选“比较同意”，其余选“非常同意”。脚本只填写不提交，请手动提交。</div>
-        <div style="margin-top:8px;">
-          <button id="${injectedId}-run" class="sc-btn primary">一键评教</button>
-          <button id="${injectedId}-cancel" class="sc-btn warn">取消</button>
+    // 2. 创建并注入UI面板
+    const schoolName = host.includes('swust') ? "西南科技大学" : "西华大学";
+    const wrapper = document.createElement('div');
+    wrapper.id = injectedId;
+    wrapper.innerHTML = `
+        <div class="sc-panel">
+            <div class="sc-header">
+                <span>评教助手 - ${schoolName}</span>
+                <span class="sc-close" title="关闭">×</span>
+            </div>
+            <div class="sc-body">
+                <div class="sc-hint" id="${injectedId}-hint">检测到系统已就绪，点击下方按钮开始自动填写。</div>
+                <button id="${injectedId}-run" class="sc-btn primary">一键自动填写</button>
+                <button id="${injectedId}-cancel" class="sc-btn warn">不再显示</button>
+                <div style="margin-top:8px; font-size:12px; color:#999;">状态：<span id="${injectedId}-status">等待操作</span></div>
+            </div>
         </div>
-        <div style="margin-top:10px;font-size:12px;color:#999">状态：<span id="${injectedId}-status">就绪</span></div>
-      </div>
-      <div class="sc-footer">自动填写（不提交）</div>
-    </div>
-  `;
-  document.body.appendChild(wrapper);
+    `;
+    document.body.appendChild(wrapper);
 
-  const statusSpan = document.getElementById(`${injectedId}-status`);
-  const btnRun = document.getElementById(`${injectedId}-run`);
-  const btnCancel = document.getElementById(`${injectedId}-cancel`);
-  const btnClose = wrapper.querySelector('.sc-close');
+    const btnRun = document.getElementById(`${injectedId}-run`);
+    const statusSpan = document.getElementById(`${injectedId}-status`);
+    const hintDiv = document.getElementById(`${injectedId}-hint`);
 
-  function setStatus(text){
-    if(statusSpan) statusSpan.textContent = text;
-  }
+    // 3. 西科大填写逻辑
+    function fillSwust() {
+        const options = document.querySelectorAll('td.quota a[data-opt="1"]');
+        if (options.length === 0) {
+            statusSpan.textContent = "未找到题目，请稍后再试";
+            return;
+        }
 
-  // 自动填充函数（仅填写，不触发任何保存/提交的弹窗或跳转）
-  function autoFillChoices(){
-    const rows = document.querySelectorAll('.panel-pjdx .tr-xspj');
-    if(!rows || rows.length === 0){
-      console.warn('未找到任何题目行（.panel-pjdx .tr-xspj）。请确认页面已完全加载且选择器匹配。');
-      setStatus('未找到题目');
-      return false;
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i < options.length) {
+                options[i].click();
+                statusSpan.textContent = `进度: ${i+1}/${options.length}`;
+                i++;
+            } else {
+                clearInterval(interval);
+                // 填写意见建议
+                const textArea = document.getElementById('CourseComment');
+                if (textArea) {
+                    textArea.value = "无";
+                    textArea.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                // 解锁提交按钮
+                const submitBtn = document.getElementById('postTrigger');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('disabled');
+                }
+                statusSpan.textContent = "完成！请手动点击提交";
+            }
+        }, 300);
     }
 
-    rows.forEach((tr, idx) => {
-      // 第1题选择“比较同意”（.input-xspj-2），其他选择“非常同意”（.input-xspj-1）
-      const choiceClass = (idx === 0) ? '.input-xspj-2 input.radio-pjf' : '.input-xspj-1 input.radio-pjf';
-      const input = tr.querySelector(choiceClass);
-      if(input) {
-        // 只做非破坏性选择：设置 checked 并触发 change（不进行额外跳转或弹窗）
-        try { input.checked = true; } catch(e){}
-        try { input.dispatchEvent(new Event('change', { bubbles: true })); } catch(e){}
-      } else {
-        console.warn('第 ' + (idx+1) + ' 题找不到目标选项（' + choiceClass + '）', tr);
-      }
+    // 4. 西华大学填写逻辑
+    function fillXhu() {
+        const rows = document.querySelectorAll('.panel-pjdx .tr-xspj');
+        if (rows.length === 0) {
+            statusSpan.textContent = "未找到题目";
+            return;
+        }
+
+        rows.forEach((tr, idx) => {
+            // 第1题: .input-xspj-2 (比较同意), 其余: .input-xspj-1 (非常同意)
+            const choiceClass = (idx === 0) ? '.input-xspj-2 input.radio-pjf' : '.input-xspj-1 input.radio-pjf';
+            const input = tr.querySelector(choiceClass);
+            if (input) {
+                input.checked = true;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+        statusSpan.textContent = "完成！请手动保存提交";
+    }
+
+    // 5. 事件绑定
+    btnRun.addEventListener('click', () => {
+        statusSpan.textContent = "正在处理...";
+        if (host.includes('swust')) {
+            fillSwust();
+        } else {
+            fillXhu();
+        }
     });
 
-    setStatus('已自动填写（请手动保存/提交）');
-    console.log('自动填写完成：第1题->比较同意，其余->非常同意（脚本未提交）');
-    return true;
-  }
+    const closeUI = () => wrapper.remove();
+    document.getElementById(`${injectedId}-cancel`).addEventListener('click', closeUI);
+    wrapper.querySelector('.sc-close').addEventListener('click', closeUI);
 
-  // 移除面板及清理（外部可调用）
-  function removeEvalUI(){
-    try { const node = document.getElementById(injectedId); if(node) node.remove(); } catch(e){}
-    try { style.remove(); } catch(e){}
-    console.log('已移除自动评教面板。');
-  }
-
-  // 事件绑定
-  btnRun.addEventListener('click', () => {
-    const ok = autoFillChoices();
-    if(ok){
-      // 保持面板可见，用户手动保存或提交
+    // 针对西科大特殊的 Loading 提示
+    if (host.includes('swust')) {
+        hintDiv.textContent = "西科大评教有3秒加载动画，请等表格显示后再点击。";
     }
-  });
 
-  btnCancel.addEventListener('click', () => {
-    removeEvalUI();
-  });
-
-  btnClose.addEventListener('click', () => {
-    removeEvalUI();
-  });
-
-  window.removeEvalUI = removeEvalUI;
-
-  setStatus('就绪（等待一键评教）');
-  console.log('已注入简化版一键评教面板（只填写，不提交，不弹窗）。');
 })();
