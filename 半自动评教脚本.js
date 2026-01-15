@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         高校教务系统"学生评价"自动选择
+// @name         高校教务系统"教学评价"自动选择
 // @namespace    https://github.com/Ayuan159357/xhu-Student-evaluation-of-teaching-quality
 // @license       MIT 
 // @version      2026.1.15.1
-// @description  自动识别学校执行评教。现在支持西科大：全自动首选+意见和建议填“无”；西华：弹窗手动一键填写。
+// @description  自动识别学校执行评教。西科大：全自动首选+意见和建议填“无”；西华：弹窗手动一键填写。
 // @author       ayuan159357
 // @match        https://matrix.dean.swust.edu.cn/acadmicManager/index.cfm?event=evaluateOnline:evaluateResponse*
 // @match        https://jwc.xhu.edu.cn/xspjgl/xspj_cxXspjIndex.html?*
@@ -17,7 +17,7 @@
     const host = window.location.host;
     const injectedId = 'uni-eval-ui';
 
-    // 1. 注入共用样式
+    // 共用样式
     const style = document.createElement('style');
     style.textContent = `
         #${injectedId} { position: fixed; right: 20px; bottom: 20px; z-index: 999999; font-family: "Microsoft Yahei", Arial; }
@@ -34,7 +34,7 @@
     `;
     document.head.appendChild(style);
 
-    // 2. 创建并注入UI面板
+    //创建并注入UI面板
     const schoolName = host.includes('swust') ? "西南科技大学" : "西华大学";
     const wrapper = document.createElement('div');
     wrapper.id = injectedId;
@@ -58,7 +58,7 @@
     const statusSpan = document.getElementById(`${injectedId}-status`);
     const hintDiv = document.getElementById(`${injectedId}-hint`);
 
-    // 3. 西科大填写逻辑
+    // 西科大填写逻辑
     function fillSwust() {
         const options = document.querySelectorAll('td.quota a[data-opt="1"]');
         if (options.length === 0) {
@@ -91,7 +91,7 @@
         }, 300);
     }
 
-    // 4. 西华大学填写逻辑
+    //西华大学填写逻辑
     function fillXhu() {
         const rows = document.querySelectorAll('.panel-pjdx .tr-xspj');
         if (rows.length === 0) {
@@ -111,7 +111,7 @@
         statusSpan.textContent = "完成！请手动保存提交";
     }
 
-    // 5. 事件绑定
+    // 事件绑定
     btnRun.addEventListener('click', () => {
         statusSpan.textContent = "正在处理...";
         if (host.includes('swust')) {
