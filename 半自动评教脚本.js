@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name         正方教务系统-自动评教
-// @namespace    https://scriptcat.local/auto-xspj
-// @version      0.2.0
-// @description  逐个遍历"未评"教师，第一题选"比较同意"，其余选"非常同意"，保存后翻到下一门/下一页，带随机延时防止过快
-// @author       you
-// @match        *://*/xspjgl/xspj_cxXspjIndex.html*
+// @name         西华大学-自动评教
+// @namespace    https://github.com/Ayuan159357/xhu-Student-evaluation-of-teaching-quality
+// @version      2026.8.12
+// @description  西华大学教学评价助手：逐个处理未评课程，第一题选“比较同意”，其余选“非常同意”。
+// @author       ayuan159357
+// @match        https://jwc.xhu.edu.cn/xspjgl/xspj_cxXspjIndex.html*
 // @run-at       document-idle
 // @grant        none
 // ==/UserScript==
@@ -91,7 +91,7 @@
             'border:1px solid #ccc;border-radius:8px;padding:12px 14px;' +
             'box-shadow:0 2px 10px rgba(0,0,0,.25);font-size:13px;width:210px;';
         div.innerHTML = `
-            <div style="font-weight:bold;margin-bottom:8px;">自动评教助手</div>
+            <div style="font-weight:bold;margin-bottom:8px;">西华大学评教助手</div>
             <div style="margin-bottom:6px;color:#888;">
                 模式: ${CONFIG.actionType === 'save' ? '仅保存' : '保存并提交'}
             </div>
